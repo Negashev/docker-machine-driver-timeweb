@@ -46,6 +46,7 @@ type Driver struct {
 	FloatingIp       string
 	FloatingIpId     string
 	UserData         string
+	UserDataIsText   bool
 	AvailabilityZone string
 	dmdSuccess       bool
 }
@@ -67,6 +68,7 @@ const (
 	flagNetworkId        = "timeweb-network-id"
 	flagFloatingIp       = "timeweb-floating-ip"
 	flagUserData         = "timeweb-user-data"
+	flagUserDataIsText   = "timeweb-user-data-is-text"
 	flagAvailabilityZone = "timeweb-availability-zone"
 
 	defaultSSHPort = 22
@@ -190,6 +192,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Cloud-user script",
 			Value:  "",
 		},
+		mcnflag.BoolFlag{
+			EnvVar: "TIMEWEB_USER_DATA_IS_TEXT",
+			Name:   flagUserDataIsText,
+			Usage:  "Cloud-user script is text data? or file name",
+		},
 		mcnflag.StringFlag{
 			EnvVar: "TIMEWEB_AVAILABILITY_ZONE",
 			Name:   flagAvailabilityZone,
@@ -222,6 +229,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	//d.AvailabilityZone = flagAvailabilityZone
 
 	d.UserData = opts.String(flagUserData)
+	d.UserDataIsText = opts.Bool(flagUserDataIsText)
 	d.SSHUser = "root"
 	d.SSHPort = 22
 
@@ -369,6 +377,23 @@ var FixApiCreateKeyRequestResult struct {
 	ResponseID string `json:"response_id"`
 }
 
+func (d *Driver) getUserData() (string, error) {
+	// return empty
+	if d.UserData == "" {
+		return d.UserData, nil
+	}
+
+	if d.UserDataIsText == true {
+		return d.UserData, nil
+	}
+
+	readUserData, err := os.ReadFile(d.UserData)
+	if err != nil {
+		return "", err
+	}
+	return string(readUserData), nil
+}
+
 func (d *Driver) Create() error {
 	c := d.getClient()
 	ctx := context.Background()
@@ -410,7 +435,11 @@ func (d *Driver) Create() error {
 	d.SshKeyID = FixApiCreateKeyRequestResult.SSHKey.ID
 	server.SetSshKeysIds([]float32{FixApiCreateKeyRequestResult.SSHKey.ID})
 	// add  cloud user data
-	server.SetCloudInit(d.UserData)
+	UserData, err := d.getUserData()
+	if err != nil {
+		return err
+	}
+	server.SetCloudInit(UserData)
 	// add comment
 	server.SetComment(d.Comment)
 	// create server
@@ -425,9 +454,8 @@ func (d *Driver) Create() error {
 	// add ip
 	AddServerIPRequest := openapi.NewAddServerIPRequest("ipv4")
 	ApiAddServerIPRequest := c.ServersAPI.AddServerIP(ctx, d.ServerID)
-	ip, r, err := ApiAddServerIPRequest.AddServerIPRequest(*AddServerIPRequest).Execute()
+	ip, _, err := ApiAddServerIPRequest.AddServerIPRequest(*AddServerIPRequest).Execute()
 	if err != nil {
-		log.Error("Failed to add server ip", r)
 		return err
 	}
 	FloatingIp := ip.GetServerIp()
