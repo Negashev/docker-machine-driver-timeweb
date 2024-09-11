@@ -47,6 +47,7 @@ type Driver struct {
 	FloatingIpId     string
 	InitData         string
 	AvailabilityZone string
+	dmdSuccess       bool
 }
 
 const (
@@ -376,6 +377,8 @@ func (d *Driver) Create() error {
 	if err != nil {
 		return err
 	}
+	// delete everything
+	defer d.DestroyVM()
 	// add ssh key
 	sshKey := openapi.NewCreateKeyRequest(publicKey, false, d.MachineName)
 	ApiCreateKeyRequest := c.SSHAPI.CreateKey(ctx)
@@ -448,7 +451,7 @@ func (d *Driver) Create() error {
 	log.Info("Add server ip", serverIp)
 	// wait server with GetState
 	log.Info("Starting server", d.MachineName, d.ServerID)
-
+	d.dmdSuccess = true
 	return nil
 }
 
@@ -521,21 +524,21 @@ func (d *Driver) Remove() error {
 	ApiDeleteServerRequest := c.ServersAPI.DeleteServer(ctx, d.ServerID)
 	_, _, err := ApiDeleteServerRequest.Execute()
 	if err != nil {
-		return err
+		log.Error(err)
 	}
 	// remove IP
 	log.Info("Removed IP", d.FloatingIpId)
 	ApiDeleteFloatingIPRequest := c.FloatingIPAPI.DeleteFloatingIP(ctx, d.FloatingIpId)
 	_, err = ApiDeleteFloatingIPRequest.Execute()
 	if err != nil {
-		return err
+		log.Error(err)
 	}
 	// remove ssh key
 	log.Info("Removed ssh key", d.SshKeyID)
 	ApiDeleteKeyRequest := c.SSHAPI.DeleteKey(ctx, int32(d.SshKeyID))
 	_, err = ApiDeleteKeyRequest.Execute()
 	if err != nil {
-		return err
+		log.Error(err)
 	}
 
 	return nil
@@ -572,4 +575,10 @@ func (d *Driver) Stop() error {
 		return err
 	}
 	return nil
+}
+
+func (d *Driver) DestroyVM() {
+	if d.dmdSuccess == false {
+		d.Remove()
+	}
 }
