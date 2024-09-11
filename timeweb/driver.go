@@ -45,7 +45,7 @@ type Driver struct {
 	NetworkId        string
 	FloatingIp       string
 	FloatingIpId     string
-	InitData         string
+	UserData         string
 	AvailabilityZone string
 	dmdSuccess       bool
 }
@@ -66,7 +66,7 @@ const (
 	flagComment          = "timeweb-comment"
 	flagNetworkId        = "timeweb-network-id"
 	flagFloatingIp       = "timeweb-floating-ip"
-	flagInitData         = "timeweb-init-data"
+	flagUserData         = "timeweb-user-data"
 	flagAvailabilityZone = "timeweb-availability-zone"
 
 	defaultSSHPort = 22
@@ -185,9 +185,9 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Use private network",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "TIMEWEB_INIT_DATA",
-			Name:   flagInitData,
-			Usage:  "Cloud-init script",
+			EnvVar: "TIMEWEB_USER_DATA",
+			Name:   flagUserData,
+			Usage:  "Cloud-user script",
 			Value:  "",
 		},
 		mcnflag.StringFlag{
@@ -221,7 +221,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	//d.FloatingIp = opts.String(flagFloatingIp)
 	//d.AvailabilityZone = flagAvailabilityZone
 
-	d.InitData = opts.String(flagInitData)
+	d.UserData = opts.String(flagUserData)
 	d.SSHUser = "root"
 	d.SSHPort = 22
 
@@ -409,8 +409,8 @@ func (d *Driver) Create() error {
 	}
 	d.SshKeyID = FixApiCreateKeyRequestResult.SSHKey.ID
 	server.SetSshKeysIds([]float32{FixApiCreateKeyRequestResult.SSHKey.ID})
-	// add  cloud init
-	server.SetCloudInit(d.InitData)
+	// add  cloud user data
+	server.SetCloudInit(d.UserData)
 	// add comment
 	server.SetComment(d.Comment)
 	// create server
