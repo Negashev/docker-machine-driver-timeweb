@@ -61,7 +61,7 @@ const (
 	flagOs               = "timeweb-os"
 	flagImageId          = "timeweb-image-id"
 	flagSoftwareId       = "timeweb-software-id"
-	flagPreset           = "timeweb-preset"
+	flagPresetId         = "timeweb-preset-id"
 	flagBandwidth        = "timeweb-bandwidth"
 	flagAvatarId         = "timeweb-avatar-id"
 	flagComment          = "timeweb-comment"
@@ -72,7 +72,7 @@ const (
 	flagAvailabilityZone = "timeweb-availability-zone"
 
 	defaultSSHPort = 22
-	defaultSSHUser = "docker"
+	defaultSSHUser = "root"
 )
 
 func NewDriver(hostName, storePath string) drivers.Driver {
@@ -152,9 +152,9 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Unique identifier of the server software.",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "TIMEWEB_PRESET",
-			Name:   flagPreset,
-			Usage:  "Server tariff short name. Cannot be used together with --timeweb-configuration-id",
+			EnvVar: "TIMEWEB_PRESET_ID",
+			Name:   flagPresetId,
+			Usage:  "Server tariff ID. Cannot be used together with --timeweb-configuration-id",
 			Value:  "",
 		},
 		mcnflag.IntFlag{
@@ -210,7 +210,7 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 
 	d.Token = opts.String(flagToken)
 
-	d.Preset = opts.String(flagPreset)
+	d.PresetId = opts.Int(flagPresetId)
 
 	d.ConfigurationId = opts.Int(flagConfigurationId)
 	d.Ram = opts.Int(flagRam)
@@ -279,11 +279,11 @@ func (d *Driver) PreCreateCheck() error {
 		return fmt.Errorf("Invalid bandwidth value. Available values are from 100 to 1000 in increments of 100")
 	}
 	// check VM size
-	if d.Preset != "" && d.ConfigurationId != 0 {
-		return fmt.Errorf("Only one of --timeweb-preset or --timeweb-configuration-id can be specified")
+	if d.PresetId != 0 && d.ConfigurationId != 0 {
+		return fmt.Errorf("Only one of --timeweb-preset-id or --timeweb-configuration-id can be specified")
 	}
 
-	if d.ConfigurationId != 0 && d.Preset == "" {
+	if d.ConfigurationId != 0 && d.PresetId == 0 {
 		configOk := false
 		configurations, _, _ := c.ServersAPI.GetConfigurators(ctx).Execute()
 		for _, configuration := range configurations.ServerConfigurators {
@@ -325,11 +325,11 @@ func (d *Driver) PreCreateCheck() error {
 			}
 			return fmt.Errorf("Invalid configuration id %v is not found", strconv.Itoa(d.ConfigurationId))
 		}
-	} else if d.Preset != "" && d.ConfigurationId == 0 {
+	} else if d.PresetId != 0 && d.ConfigurationId == 0 {
 		PresetList, _, _ := c.ServersAPI.GetServersPresets(ctx).Execute()
 		for _, preset := range PresetList.ServerPresets {
 			// find the cheapest rate
-			if d.Preset == preset.GetDescriptionShort() {
+			if d.PresetId == int(preset.GetId()) {
 				log.Info("Use preset", d.Preset)
 				d.PresetId = int(preset.GetId())
 			}
@@ -337,9 +337,9 @@ func (d *Driver) PreCreateCheck() error {
 		if d.PresetId == 0 {
 			log.Info("Use one of:")
 			for _, preset := range PresetList.ServerPresets {
-				log.Info(preset.GetDescriptionShort(), "price:", preset.GetPrice())
+				log.Info(preset.GetId(), "name:", preset.GetDescriptionShort(), "price:", preset.GetPrice())
 			}
-			return fmt.Errorf("Preset %s not found", d.Preset)
+			return fmt.Errorf("Preset %s not found", d.PresetId)
 		}
 		log.Debug("Use preset id", d.PresetId)
 	} else {
