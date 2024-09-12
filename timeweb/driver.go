@@ -28,48 +28,50 @@ type Driver struct {
 	ServerID int32
 	SshKeyID float32
 
-	ConfigurationId  int
-	Disk             int
-	Cpu              int
-	Ram              int
-	IsDdosGuard      bool
-	Os               string
-	OsId             int
-	ImageId          string
-	SoftwareId       int
-	Preset           string
-	PresetId         int
-	Bandwidth        int
-	AvatarId         string
-	Comment          string
-	NetworkId        string
-	FloatingIp       string
-	FloatingIpId     string
-	UserData         string
-	UserDataIsText   bool
-	AvailabilityZone string
-	dmdSuccess       bool
+	PrivateIp string
+
+	ConfigurationId   int
+	Disk              int
+	Cpu               int
+	Ram               int
+	IsDdosGuard       bool
+	Os                string
+	OsId              int
+	ImageId           string
+	SoftwareId        int
+	Preset            string
+	PresetId          int
+	Bandwidth         int
+	AvatarId          string
+	Comment           string
+	NetworkId         string
+	DisableFloatingIp bool
+	FloatingIpId      string
+	UserData          string
+	UserDataIsText    bool
+	AvailabilityZone  string
+	dmdSuccess        bool
 }
 
 const (
-	flagToken            = "timeweb-cloud-token"
-	flagConfigurationId  = "timeweb-configuration-id"
-	flagDisk             = "timeweb-disk"
-	flagCpu              = "timeweb-cpu"
-	flagRam              = "timeweb-ram"
-	flagIsDdosGuard      = "timeweb-is-ddos-guard"
-	flagOs               = "timeweb-os"
-	flagImageId          = "timeweb-image-id"
-	flagSoftwareId       = "timeweb-software-id"
-	flagPresetId         = "timeweb-preset-id"
-	flagBandwidth        = "timeweb-bandwidth"
-	flagAvatarId         = "timeweb-avatar-id"
-	flagComment          = "timeweb-comment"
-	flagNetworkId        = "timeweb-network-id"
-	flagFloatingIp       = "timeweb-floating-ip"
-	flagUserData         = "timeweb-user-data"
-	flagUserDataIsText   = "timeweb-user-data-is-text"
-	flagAvailabilityZone = "timeweb-availability-zone"
+	flagToken             = "timeweb-cloud-token"
+	flagConfigurationId   = "timeweb-configuration-id"
+	flagDisk              = "timeweb-disk"
+	flagCpu               = "timeweb-cpu"
+	flagRam               = "timeweb-ram"
+	flagIsDdosGuard       = "timeweb-is-ddos-guard"
+	flagOs                = "timeweb-os"
+	flagImageId           = "timeweb-image-id"
+	flagSoftwareId        = "timeweb-software-id"
+	flagPresetId          = "timeweb-preset-id"
+	flagBandwidth         = "timeweb-bandwidth"
+	flagAvatarId          = "timeweb-avatar-id"
+	flagComment           = "timeweb-comment"
+	flagNetworkId         = "timeweb-network-id"
+	flagDisableFloatingIp = "timeweb-disable-floating-ip"
+	flagUserData          = "timeweb-user-data"
+	flagUserDataIsText    = "timeweb-user-data-is-text"
+	flagAvailabilityZone  = "timeweb-availability-zone"
 
 	defaultSSHPort = 22
 	defaultSSHUser = "root"
@@ -181,9 +183,9 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage:  "Unique network identifier",
 			Value:  "",
 		},
-		mcnflag.StringFlag{
-			EnvVar: "TIMEWEB_FLOATING_IP",
-			Name:   flagFloatingIp,
+		mcnflag.BoolFlag{
+			EnvVar: "TIMEWEB_DISABLE_FLOATING_IP",
+			Name:   flagDisableFloatingIp,
 			Usage:  "Use private network",
 		},
 		mcnflag.StringFlag{
@@ -224,8 +226,8 @@ func (d *Driver) SetConfigFromFlags(opts drivers.DriverOptions) error {
 	d.Bandwidth = opts.Int(flagBandwidth)
 	d.AvatarId = opts.String(flagAvatarId)
 	d.Comment = opts.String(flagComment)
-	//d.NetworkId = opts.String(flagNetworkId)
-	//d.FloatingIp = opts.String(flagFloatingIp)
+	d.NetworkId = opts.String(flagNetworkId)
+	d.DisableFloatingIp = opts.Bool(flagDisableFloatingIp)
 	//d.AvailabilityZone = flagAvailabilityZone
 
 	d.UserData = opts.String(flagUserData)
@@ -360,7 +362,18 @@ func (d *Driver) PreCreateCheck() error {
 		d.PresetId = int(cheapestPreset.GetId())
 		log.Debug("Use preset id", d.PresetId)
 	}
-
+	// check vpc
+	if d.NetworkId != "" {
+		ApiGetVPCRequest := c.VPCAPI.GetVPC(ctx, d.NetworkId)
+		vpc, _, err := ApiGetVPCRequest.Execute()
+		if err != nil {
+			// truncate NetworkId
+			log.Error("VPC with ID", d.NetworkId, "not found", err)
+			d.NetworkId = ""
+		} else {
+			log.Info("VPC with ID", vpc.Vpc.GetId(), "name", vpc.Vpc.GetName(), vpc.Vpc.GetSubnetV4())
+		}
+	}
 	return nil
 }
 
@@ -434,7 +447,7 @@ func (d *Driver) Create() error {
 	}
 	d.SshKeyID = FixApiCreateKeyRequestResult.SSHKey.ID
 	server.SetSshKeysIds([]float32{FixApiCreateKeyRequestResult.SSHKey.ID})
-	// add  cloud user data
+	// add cloud user data
 	UserData, err := d.getUserData()
 	if err != nil {
 		return err
@@ -442,6 +455,10 @@ func (d *Driver) Create() error {
 	server.SetCloudInit(UserData)
 	// add comment
 	server.SetComment(d.Comment)
+	// add vpc
+	if d.NetworkId != "" {
+		server.SetNetwork(openapi.Network{Id: d.NetworkId})
+	}
 	// create server
 	ApiCreateServerRequest := c.ServersAPI.CreateServer(ctx)
 	NewServer, _, err := ApiCreateServerRequest.CreateServer(*server).Execute()
@@ -451,32 +468,41 @@ func (d *Driver) Create() error {
 	log.Info("Created server", d.MachineName, "with SSH key", FixApiCreateKeyRequestResult.SSHKey.ID)
 
 	d.ServerID = int32(NewServer.Server.GetId())
-	// add ip
-	AddServerIPRequest := openapi.NewAddServerIPRequest("ipv4")
-	ApiAddServerIPRequest := c.ServersAPI.AddServerIP(ctx, d.ServerID)
-	ip, _, err := ApiAddServerIPRequest.AddServerIPRequest(*AddServerIPRequest).Execute()
-	if err != nil {
-		return err
-	}
-	FloatingIp := ip.GetServerIp()
-	serverIp := FloatingIp.GetIp()
-	// get uuid of IP
-	log.Info("Get uuid of IP")
-	floatingIps, _, err := c.FloatingIPAPI.GetFloatingIps(ctx).Execute()
-	if err != nil {
-		return err
-	}
-	for _, floatingIp := range floatingIps.Ips {
-		if floatingIp.GetIp() == serverIp {
-			d.FloatingIpId = floatingIp.GetId()
+	if d.DisableFloatingIp {
+		for _, network := range NewServer.Server.GetNetworks() {
+			if network.Type == "local" {
+				d.PrivateIp = network.Ips[0].Ip
+				break
+			}
 		}
+	} else {
+		// add ip
+		AddServerIPRequest := openapi.NewAddServerIPRequest("ipv4")
+		ApiAddServerIPRequest := c.ServersAPI.AddServerIP(ctx, d.ServerID)
+		ip, _, err := ApiAddServerIPRequest.AddServerIPRequest(*AddServerIPRequest).Execute()
+		if err != nil {
+			return err
+		}
+		FloatingIp := ip.GetServerIp()
+		serverIp := FloatingIp.GetIp()
+		// get uuid of IP
+		log.Info("Get uuid of IP")
+		floatingIps, _, err := c.FloatingIPAPI.GetFloatingIps(ctx).Execute()
+		if err != nil {
+			return err
+		}
+		for _, floatingIp := range floatingIps.Ips {
+			if floatingIp.GetIp() == serverIp {
+				d.FloatingIpId = floatingIp.GetId()
+			}
+		}
+		if d.FloatingIpId == "" {
+			return fmt.Errorf("FloatingIp not found for server", d.MachineName)
+		}
+		d.IPAddress = serverIp
+		log.Info("Add server ip", serverIp)
 	}
-	if d.FloatingIpId == "" {
-		return fmt.Errorf("FloatingIp not found for server", d.MachineName)
-	}
-	d.IPAddress = serverIp
 
-	log.Info("Add server ip", serverIp)
 	// wait server with GetState
 	log.Info("Starting server", d.MachineName, d.ServerID)
 	d.dmdSuccess = true
@@ -497,6 +523,9 @@ func (d *Driver) createSSHKey() (string, error) {
 }
 
 func (d *Driver) GetIP() (string, error) {
+	if d.PrivateIp != "" {
+		return d.PrivateIp, nil
+	}
 	return d.IPAddress, nil
 }
 
