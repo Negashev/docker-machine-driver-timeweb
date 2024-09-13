@@ -153,11 +153,10 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   flagSoftwareId,
 			Usage:  "Unique identifier of the server software.",
 		},
-		mcnflag.StringFlag{
+		mcnflag.IntFlag{
 			EnvVar: "TIMEWEB_PRESET_ID",
 			Name:   flagPresetId,
 			Usage:  "Server tariff ID. Cannot be used together with --timeweb-configuration-id",
-			Value:  "",
 		},
 		mcnflag.IntFlag{
 			EnvVar: "TIMEWEB_BANDWIDTH",
@@ -474,7 +473,7 @@ func (d *Driver) Create() error {
 				d.PrivateIp = network.Ips[0].Ip
 				// set snat for servers without public IP
 				ApiUpdateServerNATRequest := c.ServersAPI.UpdateServerNAT(ctx, d.ServerID)
-				ApiUpdateServerNATRequest.UpdateServerNATRequest(openapi.UpdateServerNATRequest{NatMode: "snat"})
+				ApiUpdateServerNATRequest = ApiUpdateServerNATRequest.UpdateServerNATRequest(openapi.UpdateServerNATRequest{NatMode: "snat"})
 				_, err = ApiUpdateServerNATRequest.Execute()
 				if err != nil {
 					return err
@@ -591,11 +590,13 @@ func (d *Driver) Remove() error {
 		log.Error(err)
 	}
 	// remove IP
-	log.Info("Removed IP", d.FloatingIpId)
-	ApiDeleteFloatingIPRequest := c.FloatingIPAPI.DeleteFloatingIP(ctx, d.FloatingIpId)
-	_, err = ApiDeleteFloatingIPRequest.Execute()
-	if err != nil {
-		log.Error(err)
+	if !d.DisableFloatingIp {
+		log.Info("Removed IP", d.FloatingIpId)
+		ApiDeleteFloatingIPRequest := c.FloatingIPAPI.DeleteFloatingIP(ctx, d.FloatingIpId)
+		_, err = ApiDeleteFloatingIPRequest.Execute()
+		if err != nil {
+			log.Error(err)
+		}
 	}
 	// remove ssh key
 	log.Info("Removed ssh key", d.SshKeyID)
