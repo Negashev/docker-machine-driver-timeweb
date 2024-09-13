@@ -472,6 +472,13 @@ func (d *Driver) Create() error {
 		for _, network := range NewServer.Server.GetNetworks() {
 			if network.Type == "local" {
 				d.PrivateIp = network.Ips[0].Ip
+				// set snat for servers without public IP
+				ApiUpdateServerNATRequest := c.ServersAPI.UpdateServerNAT(ctx, d.ServerID)
+				ApiUpdateServerNATRequest.UpdateServerNATRequest(openapi.UpdateServerNATRequest{NatMode: "snat"})
+				_, err = ApiUpdateServerNATRequest.Execute()
+				if err != nil {
+					return err
+				}
 				break
 			}
 		}
