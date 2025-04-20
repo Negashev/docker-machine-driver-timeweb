@@ -472,22 +472,7 @@ func (d *Driver) Create() error {
 	log.Info("Created server", d.MachineName, "with SSH key", FixApiCreateKeyRequestResult.SSHKey.ID)
 
 	d.ServerID = int32(NewServer.Server.GetId())
-	if d.DisableFloatingIp {
-		for _, network := range NewServer.Server.GetNetworks() {
-			if network.Type == "local" {
-				d.PrivateIp = network.Ips[0].Ip
-				// TODO check that we need it that ?
-				// set snat for servers without public IP
-				//ApiUpdateServerNATRequest := c.ServersAPI.UpdateServerNAT(ctx, d.ServerID)
-				//ApiUpdateServerNATRequest = ApiUpdateServerNATRequest.UpdateServerNATRequest(openapi.UpdateServerNATRequest{NatMode: "snat"})
-				//_, err = ApiUpdateServerNATRequest.Execute()
-				//if err != nil {
-				//	return err
-				//}
-				break
-			}
-		}
-	} else {
+	if !d.DisableFloatingIp {
 		// get uuid of IP
 		// TODO check public IP binding
 		log.Info("Get uuid of IP")
@@ -518,7 +503,28 @@ func (d *Driver) Create() error {
 		}
 		log.Info("Add server ip", d.IPAddress)
 	}
-
+	// set IPv4 IPv6 (and local)
+	for _, network := range NewServer.Server.GetNetworks() {
+		if network.Type == "public" {
+			for _, ip := range network.Ips {
+				// if public IP set (disable IPv6)
+				if d.FloatingIpId != "" {
+					continue
+				}
+				if ip.Type == "ipv4" {
+					d.IPAddress = ip.Ip
+				}
+				if ip.Type == "ipv6" && d.IPAddress == "" {
+					d.IPAddress = ip.Ip
+				}
+			}
+		}
+		if network.Type == "local" {
+			for _, ip := range network.Ips {
+				d.PrivateIp = ip.Ip
+			}
+		}
+	}
 	// wait server with GetState
 	log.Info("Starting server", d.MachineName, d.ServerID)
 	d.dmdSuccess = true
@@ -539,9 +545,6 @@ func (d *Driver) createSSHKey() (string, error) {
 }
 
 func (d *Driver) GetIP() (string, error) {
-	if d.PrivateIp != "" {
-		return d.PrivateIp, nil
-	}
 	return d.IPAddress, nil
 }
 

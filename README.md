@@ -1,5 +1,9 @@
 # simple docker machine driver for timeweb.cloud
 
+Timeweb limit is 10 public IP  in 24 Hour
+
+For usage you need to create network and IPs on Timeweb site
+
 #### Use with rancher (add to local cluster)
 ```yaml
 apiVersion: management.cattle.io/v3
