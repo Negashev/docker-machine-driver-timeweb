@@ -412,6 +412,7 @@ func (d *Driver) Create() error {
 	// generate ssh key
 	publicKey, err := d.createSSHKey()
 	if err != nil {
+		log.Error("Failed to generate SSH key:", err)
 		return err
 	}
 	// delete everything
@@ -421,11 +422,12 @@ func (d *Driver) Create() error {
 	ApiCreateKeyRequest := c.SSHAPI.CreateKey(ctx)
 	_, ResposeKey, err := ApiCreateKeyRequest.CreateKeyRequest(*sshKey).Execute()
 	if err != nil {
+		log.Error("Failed to create SSH key:", err)
 		return err
 	}
-	log.Info("Created ssh key", sshKey.Body)
+	log.Info("Created SSH key", sshKey.Body)
 	// config server
-	server := openapi.NewCreateServer(d.IsDdosGuard, float32(d.Bandwidth), d.MachineName)
+	server := openapi.NewCreateServer(d.MachineName)
 	server.SetOsId(float32(d.OsId))
 	// set server size
 	if d.ConfigurationId != 0 {
@@ -442,6 +444,7 @@ func (d *Driver) Create() error {
 	// add ssh key to server
 	jsonParser := json.NewDecoder(ResposeKey.Body)
 	if err = jsonParser.Decode(&FixApiCreateKeyRequestResult); err != nil {
+		log.Error("Failed to decode SSH key response:", err)
 		return err
 	}
 	d.SshKeyID = FixApiCreateKeyRequestResult.SSHKey.ID
@@ -449,6 +452,7 @@ func (d *Driver) Create() error {
 	// add cloud user data
 	UserData, err := d.getUserData()
 	if err != nil {
+		log.Error("Failed to get user data:", err)
 		return err
 	}
 	server.SetCloudInit(UserData)
@@ -456,12 +460,13 @@ func (d *Driver) Create() error {
 	server.SetComment(d.Comment)
 	// add vpc
 	if d.NetworkId != "" {
-		server.SetNetwork(openapi.Network{Id: d.NetworkId})
+		server.SetNetwork(openapi.CreateServerNetwork{Id: &d.NetworkId})
 	}
 	// create server
 	ApiCreateServerRequest := c.ServersAPI.CreateServer(ctx)
 	NewServer, _, err := ApiCreateServerRequest.CreateServer(*server).Execute()
 	if err != nil {
+		log.Error("Failed to create server:", err)
 		return err
 	}
 	log.Info("Created server", d.MachineName, "with SSH key", FixApiCreateKeyRequestResult.SSHKey.ID)
@@ -483,32 +488,35 @@ func (d *Driver) Create() error {
 			}
 		}
 	} else {
-		// add ip
-		AddServerIPRequest := openapi.NewAddServerIPRequest("ipv4")
-		ApiAddServerIPRequest := c.ServersAPI.AddServerIP(ctx, d.ServerID)
-		ip, _, err := ApiAddServerIPRequest.AddServerIPRequest(*AddServerIPRequest).Execute()
-		if err != nil {
-			return err
-		}
-		FloatingIp := ip.GetServerIp()
-		serverIp := FloatingIp.GetIp()
 		// get uuid of IP
 		// TODO check public IP binding
 		log.Info("Get uuid of IP")
-		floatingIps, _, err := c.FloatingIPAPI.GetFloatingIps(ctx).Execute()
+		ApiGetFloatingIpsRequest := c.FloatingIPAPI.GetFloatingIps(ctx)
+		floatingIps, _, err := ApiGetFloatingIpsRequest.Execute()
 		if err != nil {
+			log.Error("Failed to get floating IPs:", err)
 			return err
 		}
 		for _, floatingIp := range floatingIps.Ips {
-			if floatingIp.GetIp() == serverIp {
-				d.FloatingIpId = floatingIp.GetId()
+			// ip is used
+			if floatingIp.ResourceType.Get() != nil && floatingIp.ResourceId.Get() != nil {
+				continue
 			}
+			BindFloatingIp := openapi.BindFloatingIp{"server", NewServer.Server.GetId()}
+			ApiBindFloatingIpRequest := c.FloatingIPAPI.BindFloatingIp(ctx, floatingIp.GetId())
+			_, err = ApiBindFloatingIpRequest.BindFloatingIp(BindFloatingIp).Execute()
+			if err != nil {
+				log.Error("Failed to bind floating IP:", err)
+				continue
+			}
+			d.FloatingIpId = floatingIp.GetId()
+			d.IPAddress = floatingIp.GetIp()
+			break
 		}
 		if d.FloatingIpId == "" {
 			return fmt.Errorf("FloatingIp not found for server", d.MachineName)
 		}
-		d.IPAddress = serverIp
-		log.Info("Add server ip", serverIp)
+		log.Info("Add server ip", d.IPAddress)
 	}
 
 	// wait server with GetState
@@ -592,14 +600,14 @@ func (d *Driver) Remove() error {
 		log.Error(err)
 	}
 	// remove IP
-	if !d.DisableFloatingIp {
-		log.Info("Removed IP", d.FloatingIpId)
-		ApiDeleteFloatingIPRequest := c.FloatingIPAPI.DeleteFloatingIP(ctx, d.FloatingIpId)
-		_, err = ApiDeleteFloatingIPRequest.Execute()
-		if err != nil {
-			log.Error(err)
-		}
-	}
+	//if !d.DisableFloatingIp {
+	//	log.Info("Removed IP", d.FloatingIpId)
+	//	ApiDeleteFloatingIPRequest := c.FloatingIPAPI.DeleteFloatingIP(ctx, d.FloatingIpId)
+	//	_, err = ApiDeleteFloatingIPRequest.Execute()
+	//	if err != nil {
+	//		log.Error(err)
+	//	}
+	//}
 	// remove ssh key
 	log.Info("Removed ssh key", d.SshKeyID)
 	ApiDeleteKeyRequest := c.SSHAPI.DeleteKey(ctx, int32(d.SshKeyID))

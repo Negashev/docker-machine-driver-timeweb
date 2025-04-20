@@ -50,7 +50,7 @@ API Timeweb Cloud позволяет вам управлять ресурсам�
 |--- |--- |--- |
 |[entity_name]|object, object[], string[], number[], boolean|Динамическое поле, которое будет меняться в зависимости от запрашиваемого ресурса и будет содержать все атрибуты, необходимые для описания этого ресурса. Например, при запросе списка баз данных будет возвращаться поле `dbs`, а при запросе конкретного облачного сервера `server`. Для некоторых конечных точек в ответе может возвращаться сразу несколько ресурсов.|
 |meta|object|Опционально. Объект, который содержит вспомогательную информацию о ресурсе. Чаще всего будет встречаться при запросе коллекций и содержать поле `total`, которое будет указывать на количество элементов в коллекции.|
-|response_id|string|Опционально. В большинстве случаев в ответе будет содержаться уникальный идентификатор ответа в формате UUIDv4, который однозначно указывает на ваш запрос внутри нашей системы. Если вам потребуется задать вопрос нашей поддержке, приложите к вопросу этот идентификатор — так мы сможем найти ответ на него намного быстрее. Также вы можете использовать этот идентификатор, чтобы убедиться, что это новый ответ на запрос и результат не был получен из кэша.|
+|response_id|string|Опционально. В большинстве случаев в ответе будет содержаться ID ответа в формате UUIDv4, который однозначно указывает на ваш запрос внутри нашей системы. Если вам потребуется задать вопрос нашей поддержке, приложите к вопросу этот ID— так мы сможем найти ответ на него намного быстрее. Также вы можете использовать этот ID, чтобы убедиться, что это новый ответ на запрос и результат не был получен из кэша.|
 
 Пример запроса на получение списка SSH-ключей:
 ```
@@ -81,7 +81,7 @@ API Timeweb Cloud позволяет вам управлять ресурсам�
 |status_code|number|Короткий числовой идентификатор ошибки.|
 |error_code|string|Короткий текстовый идентификатор ошибки, который уточняет числовой идентификатор и удобен для программной обработки. Самый простой пример — это код `not_found` для ошибки 404.|
 |message|string, string[]|Опционально. В большинстве случаев в ответе будет содержаться человекочитаемое подробное описание ошибки или ошибок, которые помогут понять, что нужно исправить.|
-|response_id|string|Опционально. В большинстве случае в ответе будет содержаться уникальный идентификатор ответа в формате UUIDv4, который однозначно указывает на ваш запрос внутри нашей системы. Если вам потребуется задать вопрос нашей поддержке, приложите к вопросу этот идентификатор — так мы сможем найти ответ на него намного быстрее.|
+|response_id|string|Опционально. В большинстве случае в ответе будет содержаться ID ответа в формате UUIDv4, который однозначно указывает на ваш запрос внутри нашей системы. Если вам потребуется задать вопрос нашей поддержке, приложите к вопросу этот ID — так мы сможем найти ответ на него намного быстрее.|
 
 Пример:
 ```
@@ -95,7 +95,7 @@ API Timeweb Cloud позволяет вам управлять ресурсам�
 ```
 
 ## Статусы ресурсов
-Важно учесть, что при создании большинства ресурсов внутри платформы вам будет сразу возвращен ответ от сервера со статусом `200 OK` или `201 Created` и идентификатором созданного ресурса в теле ответа, но при этом этот ресурс может быть ещё в *состоянии запуска*.
+Важно учесть, что при создании большинства ресурсов внутри платформы вам будет сразу возвращен ответ от сервера со статусом `200 OK` или `201 Created` и ID созданного ресурса в теле ответа, но при этом этот ресурс может быть ещё в *состоянии запуска*.
 
 Для того чтобы понять, в каком состоянии сейчас находится ваш ресурс, мы добавили поле `status` в ответ на получение информации о ресурсе.
 
@@ -140,7 +140,7 @@ TIMEWEB_CLOUD_TOKEN=\"token\"
 
 После этого токен будет автоматически подставляться в ваши запросы.
 
-Обратите внимание, что все значения в этой документации являются примерами. Не полагайтесь на идентификаторы операционных систем, тарифов и т.д., используемые в примерах. Используйте соответствующую конечную точку для получения значений перед созданием ресурсов.
+Обратите внимание, что все значения в этой документации являются примерами. Не полагайтесь на IDы операционных систем, тарифов и т.д., используемые в примерах. Используйте соответствующую конечную точку для получения значений перед созданием ресурсов.
 
 
 ## Версионирование
@@ -293,6 +293,7 @@ Class | Method | HTTP request | Description
 *DatabasesAPI* | [**GetDatabaseClusters**](docs/DatabasesAPI.md#getdatabaseclusters) | **Get** /api/v1/databases | Получение списка кластеров баз данных
 *DatabasesAPI* | [**GetDatabaseInstance**](docs/DatabasesAPI.md#getdatabaseinstance) | **Get** /api/v1/databases/{db_cluster_id}/instances/{instance_id} | Получение инстанса базы данных
 *DatabasesAPI* | [**GetDatabaseInstances**](docs/DatabasesAPI.md#getdatabaseinstances) | **Get** /api/v1/databases/{db_cluster_id}/instances | Получение списка инстансов баз данных
+*DatabasesAPI* | [**GetDatabaseParameters**](docs/DatabasesAPI.md#getdatabaseparameters) | **Get** /api/v1/dbs/parameters | Получение списка параметров баз данных
 *DatabasesAPI* | [**GetDatabaseUser**](docs/DatabasesAPI.md#getdatabaseuser) | **Get** /api/v1/databases/{db_cluster_id}/admins/{admin_id} | Получение пользователя базы данных
 *DatabasesAPI* | [**GetDatabaseUsers**](docs/DatabasesAPI.md#getdatabaseusers) | **Get** /api/v1/databases/{db_cluster_id}/admins | Получение списка пользователей базы данных
 *DatabasesAPI* | [**GetDatabases**](docs/DatabasesAPI.md#getdatabases) | **Get** /api/v1/dbs | Получение списка всех баз данных
@@ -325,7 +326,7 @@ Class | Method | HTTP request | Description
 *DomainsAPI* | [**GetDomainRequest**](docs/DomainsAPI.md#getdomainrequest) | **Get** /api/v1/domains-requests/{request_id} | Получение заявки на регистрацию/продление/трансфер домена
 *DomainsAPI* | [**GetDomainRequests**](docs/DomainsAPI.md#getdomainrequests) | **Get** /api/v1/domains-requests | Получение списка заявок на регистрацию/продление/трансфер домена
 *DomainsAPI* | [**GetDomains**](docs/DomainsAPI.md#getdomains) | **Get** /api/v1/domains | Получение списка всех доменов
-*DomainsAPI* | [**GetTLD**](docs/DomainsAPI.md#gettld) | **Get** /api/v1/tlds/{tld_id} | Получить информацию о доменной зоне по идентификатору
+*DomainsAPI* | [**GetTLD**](docs/DomainsAPI.md#gettld) | **Get** /api/v1/tlds/{tld_id} | Получить информацию о доменной зоне по ID
 *DomainsAPI* | [**GetTLDs**](docs/DomainsAPI.md#gettlds) | **Get** /api/v1/tlds | Получить информацию о доменных зонах
 *DomainsAPI* | [**UpdateDomainAutoProlongation**](docs/DomainsAPI.md#updatedomainautoprolongation) | **Patch** /api/v1/domains/{fqdn} | Включение/выключение автопродления домена
 *DomainsAPI* | [**UpdateDomainDNSRecord**](docs/DomainsAPI.md#updatedomaindnsrecord) | **Patch** /api/v1/domains/{fqdn}/dns-records/{record_id} | Обновить информацию о DNS-записи домена или поддомена
@@ -347,11 +348,11 @@ Class | Method | HTTP request | Description
 *FirewallAPI* | [**UpdateGroupRule**](docs/FirewallAPI.md#updategrouprule) | **Patch** /api/v1/firewall/groups/{group_id}/rules/{rule_id} | Обновление firewall правила
 *FloatingIPAPI* | [**BindFloatingIp**](docs/FloatingIPAPI.md#bindfloatingip) | **Post** /api/v1/floating-ips/{floating_ip_id}/bind | Привязать IP к сервису
 *FloatingIPAPI* | [**CreateFloatingIp**](docs/FloatingIPAPI.md#createfloatingip) | **Post** /api/v1/floating-ips | Создание плавающего IP
-*FloatingIPAPI* | [**DeleteFloatingIP**](docs/FloatingIPAPI.md#deletefloatingip) | **Delete** /api/v1/floating-ips/{floating_ip_id} | Удаление плавающего IP по идентификатору
+*FloatingIPAPI* | [**DeleteFloatingIP**](docs/FloatingIPAPI.md#deletefloatingip) | **Delete** /api/v1/floating-ips/{floating_ip_id} | Удаление плавающего IP по ID
 *FloatingIPAPI* | [**GetFloatingIp**](docs/FloatingIPAPI.md#getfloatingip) | **Get** /api/v1/floating-ips/{floating_ip_id} | Получение плавающего IP
 *FloatingIPAPI* | [**GetFloatingIps**](docs/FloatingIPAPI.md#getfloatingips) | **Get** /api/v1/floating-ips | Получение списка плавающих IP
 *FloatingIPAPI* | [**UnbindFloatingIp**](docs/FloatingIPAPI.md#unbindfloatingip) | **Post** /api/v1/floating-ips/{floating_ip_id}/unbind | Отвязать IP от сервиса
-*FloatingIPAPI* | [**UpdateFloatingIP**](docs/FloatingIPAPI.md#updatefloatingip) | **Patch** /api/v1/floating-ips/{floating_ip_id} | Изменение плавающего IP по идентификатору
+*FloatingIPAPI* | [**UpdateFloatingIP**](docs/FloatingIPAPI.md#updatefloatingip) | **Patch** /api/v1/floating-ips/{floating_ip_id} | Изменение плавающего IP по ID
 *ImagesAPI* | [**CreateImage**](docs/ImagesAPI.md#createimage) | **Post** /api/v1/images | Создание образа
 *ImagesAPI* | [**CreateImageDownloadUrl**](docs/ImagesAPI.md#createimagedownloadurl) | **Post** /api/v1/images/{image_id}/download-url | Создание ссылки на скачивание образа
 *ImagesAPI* | [**DeleteImage**](docs/ImagesAPI.md#deleteimage) | **Delete** /api/v1/images/{image_id} | Удаление образа
@@ -375,14 +376,15 @@ Class | Method | HTTP request | Description
 *KubernetesAPI* | [**GetClusterNodesFromGroup**](docs/KubernetesAPI.md#getclusternodesfromgroup) | **Get** /api/v1/k8s/clusters/{cluster_id}/groups/{group_id}/nodes | Получение списка нод, принадлежащих группе
 *KubernetesAPI* | [**GetClusterResources**](docs/KubernetesAPI.md#getclusterresources) | **Get** /api/v1/k8s/clusters/{cluster_id}/resources | Получение ресурсов кластера
 *KubernetesAPI* | [**GetClusters**](docs/KubernetesAPI.md#getclusters) | **Get** /api/v1/k8s/clusters | Получение списка кластеров
-*KubernetesAPI* | [**GetK8SNetworkDrivers**](docs/KubernetesAPI.md#getk8snetworkdrivers) | **Get** /api/v1/k8s/network_drivers | Получение списка сетевых драйверов k8s
-*KubernetesAPI* | [**GetK8SVersions**](docs/KubernetesAPI.md#getk8sversions) | **Get** /api/v1/k8s/k8s_versions | Получение списка версий k8s
+*KubernetesAPI* | [**GetK8SNetworkDrivers**](docs/KubernetesAPI.md#getk8snetworkdrivers) | **Get** /api/v1/k8s/network-drivers | Получение списка сетевых драйверов k8s
+*KubernetesAPI* | [**GetK8SVersions**](docs/KubernetesAPI.md#getk8sversions) | **Get** /api/v1/k8s/k8s-versions | Получение списка версий k8s
 *KubernetesAPI* | [**GetKubernetesPresets**](docs/KubernetesAPI.md#getkubernetespresets) | **Get** /api/v1/presets/k8s | Получение списка тарифов
 *KubernetesAPI* | [**IncreaseCountOfNodesInGroup**](docs/KubernetesAPI.md#increasecountofnodesingroup) | **Post** /api/v1/k8s/clusters/{cluster_id}/groups/{group_id}/nodes | Увеличение количества нод в группе на указанное количество
 *KubernetesAPI* | [**ReduceCountOfNodesInGroup**](docs/KubernetesAPI.md#reducecountofnodesingroup) | **Delete** /api/v1/k8s/clusters/{cluster_id}/groups/{group_id}/nodes | Уменьшение количества нод в группе на указанное количество
 *KubernetesAPI* | [**UpdateCluster**](docs/KubernetesAPI.md#updatecluster) | **Patch** /api/v1/k8s/clusters/{cluster_id} | Обновление информации о кластере
 *LocationsAPI* | [**GetLocations**](docs/LocationsAPI.md#getlocations) | **Get** /api/v2/locations | Получение списка локаций
 *MailAPI* | [**CreateDomainMailbox**](docs/MailAPI.md#createdomainmailbox) | **Post** /api/v1/mail/domains/{domain} | Создание почтового ящика
+*MailAPI* | [**CreateMultipleDomainMailboxes**](docs/MailAPI.md#createmultipledomainmailboxes) | **Post** /api/v1/mail/domains/{domain}/batch | Множественное создание почтовых ящиков
 *MailAPI* | [**DeleteMailbox**](docs/MailAPI.md#deletemailbox) | **Delete** /api/v1/mail/domains/{domain}/mailboxes/{mailbox} | Удаление почтового ящика
 *MailAPI* | [**GetDomainMailInfo**](docs/MailAPI.md#getdomainmailinfo) | **Get** /api/v1/mail/domains/{domain}/info | Получение почтовой информации о домене
 *MailAPI* | [**GetDomainMailboxes**](docs/MailAPI.md#getdomainmailboxes) | **Get** /api/v1/mail/domains/{domain} | Получение списка почтовых ящиков домена
@@ -392,6 +394,15 @@ Class | Method | HTTP request | Description
 *MailAPI* | [**UpdateDomainMailInfo**](docs/MailAPI.md#updatedomainmailinfo) | **Patch** /api/v1/mail/domains/{domain}/info | Изменение почтовой информации о домене
 *MailAPI* | [**UpdateMailQuota**](docs/MailAPI.md#updatemailquota) | **Patch** /api/v1/mail/quota | Изменение квоты почты аккаунта
 *MailAPI* | [**UpdateMailbox**](docs/MailAPI.md#updatemailbox) | **Patch** /api/v1/mail/domains/{domain}/mailboxes/{mailbox} | Изменение почтового ящика
+*NetworkDrivesAPI* | [**CreateNetworkDrive**](docs/NetworkDrivesAPI.md#createnetworkdrive) | **Post** /api/v1/network-drives | Создание сетевого диска
+*NetworkDrivesAPI* | [**DeleteNetworkDrive**](docs/NetworkDrivesAPI.md#deletenetworkdrive) | **Delete** /api/v1/network-drives/{network_drive_id} | Удаление сетевого диска по идентификатору
+*NetworkDrivesAPI* | [**GetNetworkDrive**](docs/NetworkDrivesAPI.md#getnetworkdrive) | **Get** /api/v1/network-drives/{network_drive_id} | Получение сетевого диска
+*NetworkDrivesAPI* | [**GetNetworkDrives**](docs/NetworkDrivesAPI.md#getnetworkdrives) | **Get** /api/v1/network-drives | Получение списка cетевых дисков
+*NetworkDrivesAPI* | [**GetNetworkDrivesAvailableResources**](docs/NetworkDrivesAPI.md#getnetworkdrivesavailableresources) | **Get** /api/v1/network-drives/available-resources | Получение списка сервисов доступных для подключения диска
+*NetworkDrivesAPI* | [**GetNetworkDrivesPresets**](docs/NetworkDrivesAPI.md#getnetworkdrivespresets) | **Get** /api/v1/presets/network-drives | Получение списка доступных тарифов для сетевого диска
+*NetworkDrivesAPI* | [**MountNetworkDrive**](docs/NetworkDrivesAPI.md#mountnetworkdrive) | **Post** /api/v1/network-drives/{network_drive_id}/mount | Подключить сетевой диск к сервису
+*NetworkDrivesAPI* | [**UnmountNetworkDrive**](docs/NetworkDrivesAPI.md#unmountnetworkdrive) | **Post** /api/v1/network-drives/{network_drive_id}/unmount | Отключить сетевой диск от сервиса
+*NetworkDrivesAPI* | [**UpdateNetworkDrive**](docs/NetworkDrivesAPI.md#updatenetworkdrive) | **Patch** /api/v1/network-drives/{network_drive_id} | Изменение сетевого диска по ID
 *ProjectsAPI* | [**AddBalancerToProject**](docs/ProjectsAPI.md#addbalancertoproject) | **Post** /api/v1/projects/{project_id}/resources/balancers | Добавление балансировщика в проект
 *ProjectsAPI* | [**AddClusterToProject**](docs/ProjectsAPI.md#addclustertoproject) | **Post** /api/v1/projects/{project_id}/resources/clusters | Добавление кластера в проект
 *ProjectsAPI* | [**AddDatabaseToProject**](docs/ProjectsAPI.md#adddatabasetoproject) | **Post** /api/v1/projects/{project_id}/resources/databases | Добавление базы данных в проект
@@ -407,7 +418,7 @@ Class | Method | HTTP request | Description
 *ProjectsAPI* | [**GetAccountServers**](docs/ProjectsAPI.md#getaccountservers) | **Get** /api/v1/projects/resources/servers | Получение списка всех серверов на аккаунте
 *ProjectsAPI* | [**GetAccountStorages**](docs/ProjectsAPI.md#getaccountstorages) | **Get** /api/v1/projects/resources/buckets | Получение списка всех хранилищ на аккаунте
 *ProjectsAPI* | [**GetAllProjectResources**](docs/ProjectsAPI.md#getallprojectresources) | **Get** /api/v1/projects/{project_id}/resources | Получение всех ресурсов проекта
-*ProjectsAPI* | [**GetProject**](docs/ProjectsAPI.md#getproject) | **Get** /api/v1/projects/{project_id} | Получение проекта по идентификатору
+*ProjectsAPI* | [**GetProject**](docs/ProjectsAPI.md#getproject) | **Get** /api/v1/projects/{project_id} | Получение проекта по ID
 *ProjectsAPI* | [**GetProjectBalancers**](docs/ProjectsAPI.md#getprojectbalancers) | **Get** /api/v1/projects/{project_id}/resources/balancers | Получение списка балансировщиков проекта
 *ProjectsAPI* | [**GetProjectClusters**](docs/ProjectsAPI.md#getprojectclusters) | **Get** /api/v1/projects/{project_id}/resources/clusters | Получение списка кластеров проекта
 *ProjectsAPI* | [**GetProjectDatabases**](docs/ProjectsAPI.md#getprojectdatabases) | **Get** /api/v1/projects/{project_id}/resources/databases | Получение списка баз данных проекта
@@ -438,11 +449,11 @@ Class | Method | HTTP request | Description
 *S3API* | [**UploadFileToStorage**](docs/S3API.md#uploadfiletostorage) | **Post** /api/v1/storages/buckets/{bucket_id}/object-manager/upload | Загрузка файлов в хранилище
 *SSHAPI* | [**AddKeyToServer**](docs/SSHAPI.md#addkeytoserver) | **Post** /api/v1/servers/{server_id}/ssh-keys | Добавление SSH-ключей на сервер
 *SSHAPI* | [**CreateKey**](docs/SSHAPI.md#createkey) | **Post** /api/v1/ssh-keys | Создание SSH-ключа
-*SSHAPI* | [**DeleteKey**](docs/SSHAPI.md#deletekey) | **Delete** /api/v1/ssh-keys/{ssh_key_id} | Удаление SSH-ключа по уникальному идентификатору
+*SSHAPI* | [**DeleteKey**](docs/SSHAPI.md#deletekey) | **Delete** /api/v1/ssh-keys/{ssh_key_id} | Удаление SSH-ключа по ID
 *SSHAPI* | [**DeleteKeyFromServer**](docs/SSHAPI.md#deletekeyfromserver) | **Delete** /api/v1/servers/{server_id}/ssh-keys/{ssh_key_id} | Удаление SSH-ключей с сервера
-*SSHAPI* | [**GetKey**](docs/SSHAPI.md#getkey) | **Get** /api/v1/ssh-keys/{ssh_key_id} | Получение SSH-ключа по уникальному идентификатору
+*SSHAPI* | [**GetKey**](docs/SSHAPI.md#getkey) | **Get** /api/v1/ssh-keys/{ssh_key_id} | Получение SSH-ключа по ID
 *SSHAPI* | [**GetKeys**](docs/SSHAPI.md#getkeys) | **Get** /api/v1/ssh-keys | Получение списка SSH-ключей
-*SSHAPI* | [**UpdateKey**](docs/SSHAPI.md#updatekey) | **Patch** /api/v1/ssh-keys/{ssh_key_id} | Изменение SSH-ключа по уникальному идентификатору
+*SSHAPI* | [**UpdateKey**](docs/SSHAPI.md#updatekey) | **Patch** /api/v1/ssh-keys/{ssh_key_id} | Изменение SSH-ключа по ID
 *ServersAPI* | [**AddServerIP**](docs/ServersAPI.md#addserverip) | **Post** /api/v1/servers/{server_id}/ips | Добавление IP-адреса сервера
 *ServersAPI* | [**CloneServer**](docs/ServersAPI.md#cloneserver) | **Post** /api/v1/servers/{server_id}/clone | Клонирование сервера
 *ServersAPI* | [**CreateServer**](docs/ServersAPI.md#createserver) | **Post** /api/v1/servers | Создание сервера
@@ -463,6 +474,7 @@ Class | Method | HTTP request | Description
 *ServersAPI* | [**GetServerIPs**](docs/ServersAPI.md#getserverips) | **Get** /api/v1/servers/{server_id}/ips | Получение списка IP-адресов сервера
 *ServersAPI* | [**GetServerLogs**](docs/ServersAPI.md#getserverlogs) | **Get** /api/v1/servers/{server_id}/logs | Получение списка логов сервера
 *ServersAPI* | [**GetServerStatistics**](docs/ServersAPI.md#getserverstatistics) | **Get** /api/v1/servers/{server_id}/statistics | Получение статистики сервера
+*ServersAPI* | [**GetServerStatisticsNew**](docs/ServersAPI.md#getserverstatisticsnew) | **Get** /api/v1/servers/{server_id}/statistics/{time_from}/{period}/{keys} | Получение статистики сервера
 *ServersAPI* | [**GetServers**](docs/ServersAPI.md#getservers) | **Get** /api/v1/servers | Получение списка серверов
 *ServersAPI* | [**GetServersPresets**](docs/ServersAPI.md#getserverspresets) | **Get** /api/v1/presets/servers | Получение списка тарифов серверов
 *ServersAPI* | [**GetSoftware**](docs/ServersAPI.md#getsoftware) | **Get** /api/v1/software/servers | Получение списка ПО из маркетплейса
@@ -482,12 +494,12 @@ Class | Method | HTTP request | Description
 *ServersAPI* | [**UpdateServerNAT**](docs/ServersAPI.md#updateservernat) | **Patch** /api/v1/servers/{server_id}/local-networks/nat-mode | Изменение правил маршрутизации трафика сервера (NAT)
 *ServersAPI* | [**UpdateServerOSBootMode**](docs/ServersAPI.md#updateserverosbootmode) | **Post** /api/v1/servers/{server_id}/boot-mode | Выбор типа загрузки операционной системы сервера
 *VPCAPI* | [**CreateVPC**](docs/VPCAPI.md#createvpc) | **Post** /api/v2/vpcs | Создание VPC
-*VPCAPI* | [**DeleteVPC**](docs/VPCAPI.md#deletevpc) | **Delete** /api/v1/vpcs/{vpc_id} | Удаление VPC по идентификатору сети
+*VPCAPI* | [**DeleteVPC**](docs/VPCAPI.md#deletevpc) | **Delete** /api/v1/vpcs/{vpc_id} | Удаление VPC по ID сети
 *VPCAPI* | [**GetVPC**](docs/VPCAPI.md#getvpc) | **Get** /api/v2/vpcs/{vpc_id} | Получение VPC
 *VPCAPI* | [**GetVPCPorts**](docs/VPCAPI.md#getvpcports) | **Get** /api/v1/vpcs/{vpc_id}/ports | Получение списка портов для VPC
 *VPCAPI* | [**GetVPCServices**](docs/VPCAPI.md#getvpcservices) | **Get** /api/v2/vpcs/{vpc_id}/services | Получение списка сервисов в VPC
 *VPCAPI* | [**GetVPCs**](docs/VPCAPI.md#getvpcs) | **Get** /api/v2/vpcs | Получение списка VPCs
-*VPCAPI* | [**UpdateVPCs**](docs/VPCAPI.md#updatevpcs) | **Patch** /api/v2/vpcs/{vpc_id} | Изменение VPC по идентификатору сети
+*VPCAPI* | [**UpdateVPCs**](docs/VPCAPI.md#updatevpcs) | **Patch** /api/v2/vpcs/{vpc_id} | Изменение VPC по ID сети
 
 
 ## Documentation For Models
@@ -552,6 +564,7 @@ Class | Method | HTTP request | Description
  - [Clusterk8s](docs/Clusterk8s.md)
  - [ClustersResponse](docs/ClustersResponse.md)
  - [Commit](docs/Commit.md)
+ - [ComponentsSchemasBaseError](docs/ComponentsSchemasBaseError.md)
  - [ConfigParameters](docs/ConfigParameters.md)
  - [CopyStorageFileRequest](docs/CopyStorageFileRequest.md)
  - [CreateAdmin](docs/CreateAdmin.md)
@@ -587,6 +600,11 @@ Class | Method | HTTP request | Description
  - [CreateInstance](docs/CreateInstance.md)
  - [CreateKey201Response](docs/CreateKey201Response.md)
  - [CreateKeyRequest](docs/CreateKeyRequest.md)
+ - [CreateMultipleDomainMailboxes201Response](docs/CreateMultipleDomainMailboxes201Response.md)
+ - [CreateMultipleDomainMailboxesRequest](docs/CreateMultipleDomainMailboxesRequest.md)
+ - [CreateMultipleDomainMailboxesRequestMailboxesInner](docs/CreateMultipleDomainMailboxesRequestMailboxesInner.md)
+ - [CreateNetworkDrive](docs/CreateNetworkDrive.md)
+ - [CreateNetworkDrive201Response](docs/CreateNetworkDrive201Response.md)
  - [CreateProject](docs/CreateProject.md)
  - [CreateProject201Response](docs/CreateProject201Response.md)
  - [CreateRule](docs/CreateRule.md)
@@ -597,6 +615,7 @@ Class | Method | HTTP request | Description
  - [CreateServerDiskBackup201Response](docs/CreateServerDiskBackup201Response.md)
  - [CreateServerDiskBackupRequest](docs/CreateServerDiskBackupRequest.md)
  - [CreateServerDiskRequest](docs/CreateServerDiskRequest.md)
+ - [CreateServerNetwork](docs/CreateServerNetwork.md)
  - [CreateStorage201Response](docs/CreateStorage201Response.md)
  - [CreateStorageRequest](docs/CreateStorageRequest.md)
  - [CreateToken201Response](docs/CreateToken201Response.md)
@@ -611,6 +630,7 @@ Class | Method | HTTP request | Description
  - [DatabaseClusterNetworksInnerIpsInner](docs/DatabaseClusterNetworksInnerIpsInner.md)
  - [DatabaseInstance](docs/DatabaseInstance.md)
  - [DatabaseType](docs/DatabaseType.md)
+ - [DatabaseTypeRequirements](docs/DatabaseTypeRequirements.md)
  - [Db](docs/Db.md)
  - [DbDiskStats](docs/DbDiskStats.md)
  - [DbType](docs/DbType.md)
@@ -651,16 +671,16 @@ Class | Method | HTTP request | Description
  - [DomainTransfer](docs/DomainTransfer.md)
  - [EditApiKey](docs/EditApiKey.md)
  - [Finances](docs/Finances.md)
+ - [FirewallGroup](docs/FirewallGroup.md)
  - [FirewallGroupInAPI](docs/FirewallGroupInAPI.md)
- - [FirewallGroupOutAPI](docs/FirewallGroupOutAPI.md)
  - [FirewallGroupOutResponse](docs/FirewallGroupOutResponse.md)
- - [FirewallGroupResourceOutAPI](docs/FirewallGroupResourceOutAPI.md)
+ - [FirewallGroupResource](docs/FirewallGroupResource.md)
  - [FirewallGroupResourceOutResponse](docs/FirewallGroupResourceOutResponse.md)
  - [FirewallGroupResourcesOutResponse](docs/FirewallGroupResourcesOutResponse.md)
  - [FirewallGroupsOutResponse](docs/FirewallGroupsOutResponse.md)
+ - [FirewallRule](docs/FirewallRule.md)
  - [FirewallRuleDirection](docs/FirewallRuleDirection.md)
  - [FirewallRuleInAPI](docs/FirewallRuleInAPI.md)
- - [FirewallRuleOutAPI](docs/FirewallRuleOutAPI.md)
  - [FirewallRuleOutResponse](docs/FirewallRuleOutResponse.md)
  - [FirewallRuleProtocol](docs/FirewallRuleProtocol.md)
  - [FirewallRulesOutResponse](docs/FirewallRulesOutResponse.md)
@@ -709,15 +729,18 @@ Class | Method | HTTP request | Description
  - [GetFinances400Response](docs/GetFinances400Response.md)
  - [GetFinances401Response](docs/GetFinances401Response.md)
  - [GetFinances403Response](docs/GetFinances403Response.md)
- - [GetFinances404Response](docs/GetFinances404Response.md)
  - [GetFinances429Response](docs/GetFinances429Response.md)
  - [GetFinances500Response](docs/GetFinances500Response.md)
  - [GetFloatingIps200Response](docs/GetFloatingIps200Response.md)
+ - [GetImage404Response](docs/GetImage404Response.md)
  - [GetKey200Response](docs/GetKey200Response.md)
  - [GetKeys200Response](docs/GetKeys200Response.md)
  - [GetLocations200Response](docs/GetLocations200Response.md)
  - [GetMailQuota200Response](docs/GetMailQuota200Response.md)
  - [GetMailboxes200Response](docs/GetMailboxes200Response.md)
+ - [GetNetworkDrives200Response](docs/GetNetworkDrives200Response.md)
+ - [GetNetworkDrivesAvailableResources200Response](docs/GetNetworkDrivesAvailableResources200Response.md)
+ - [GetNetworkDrivesPresets200Response](docs/GetNetworkDrivesPresets200Response.md)
  - [GetNotificationSettings200Response](docs/GetNotificationSettings200Response.md)
  - [GetOsList200Response](docs/GetOsList200Response.md)
  - [GetProjectBalancers200Response](docs/GetProjectBalancers200Response.md)
@@ -740,6 +763,7 @@ Class | Method | HTTP request | Description
  - [GetServerStatistics200ResponseDiskInner](docs/GetServerStatistics200ResponseDiskInner.md)
  - [GetServerStatistics200ResponseNetworkTrafficInner](docs/GetServerStatistics200ResponseNetworkTrafficInner.md)
  - [GetServerStatistics200ResponseRamInner](docs/GetServerStatistics200ResponseRamInner.md)
+ - [GetServerStatisticsNew200Response](docs/GetServerStatisticsNew200Response.md)
  - [GetServers200Response](docs/GetServers200Response.md)
  - [GetServersPresets200Response](docs/GetServersPresets200Response.md)
  - [GetSoftware200Response](docs/GetSoftware200Response.md)
@@ -754,11 +778,11 @@ Class | Method | HTTP request | Description
  - [GetVPCPorts200Response](docs/GetVPCPorts200Response.md)
  - [GetVPCServices200Response](docs/GetVPCServices200Response.md)
  - [GetVPCs200Response](docs/GetVPCs200Response.md)
- - [ImageDownloadAPI](docs/ImageDownloadAPI.md)
+ - [Image](docs/Image.md)
+ - [ImageDownload](docs/ImageDownload.md)
  - [ImageDownloadResponse](docs/ImageDownloadResponse.md)
  - [ImageDownloadsResponse](docs/ImageDownloadsResponse.md)
  - [ImageInAPI](docs/ImageInAPI.md)
- - [ImageOutAPI](docs/ImageOutAPI.md)
  - [ImageOutResponse](docs/ImageOutResponse.md)
  - [ImageStatus](docs/ImageStatus.md)
  - [ImageUpdateAPI](docs/ImageUpdateAPI.md)
@@ -776,10 +800,18 @@ Class | Method | HTTP request | Description
  - [MailboxSpamFilter](docs/MailboxSpamFilter.md)
  - [MasterPresetOutApi](docs/MasterPresetOutApi.md)
  - [Meta](docs/Meta.md)
+ - [MountNetworkDrive](docs/MountNetworkDrive.md)
  - [Network](docs/Network.md)
+ - [NetworkDrive](docs/NetworkDrive.md)
+ - [NetworkDriveAvailableResource](docs/NetworkDriveAvailableResource.md)
+ - [NetworkDrivePreset](docs/NetworkDrivePreset.md)
+ - [NetworkDrivePresetRead](docs/NetworkDrivePresetRead.md)
+ - [NetworkDrivePresetWrite](docs/NetworkDrivePresetWrite.md)
+ - [NetworkDriveServiceListInner](docs/NetworkDriveServiceListInner.md)
  - [NetworkDriversResponse](docs/NetworkDriversResponse.md)
  - [NodeCount](docs/NodeCount.md)
  - [NodeGroupIn](docs/NodeGroupIn.md)
+ - [NodeGroupInConfiguration](docs/NodeGroupInConfiguration.md)
  - [NodeGroupOut](docs/NodeGroupOut.md)
  - [NodeGroupResponse](docs/NodeGroupResponse.md)
  - [NodeGroupsResponse](docs/NodeGroupsResponse.md)
@@ -817,6 +849,7 @@ Class | Method | HTTP request | Description
  - [S3ObjectOwner](docs/S3ObjectOwner.md)
  - [S3Subdomain](docs/S3Subdomain.md)
  - [SchemasBaseError](docs/SchemasBaseError.md)
+ - [SchemasMeta](docs/SchemasMeta.md)
  - [ServerBackup](docs/ServerBackup.md)
  - [ServerDisk](docs/ServerDisk.md)
  - [ServerIp](docs/ServerIp.md)
@@ -828,6 +861,10 @@ Class | Method | HTTP request | Description
  - [ServersPreset](docs/ServersPreset.md)
  - [ServersSoftware](docs/ServersSoftware.md)
  - [ServersSoftwareRequirements](docs/ServersSoftwareRequirements.md)
+ - [ServersStatistics](docs/ServersStatistics.md)
+ - [ServersStatisticsListInner](docs/ServersStatisticsListInner.md)
+ - [ServersStatisticsMeta](docs/ServersStatisticsMeta.md)
+ - [SetLabels](docs/SetLabels.md)
  - [SettingCondition](docs/SettingCondition.md)
  - [SpamFilterIsDisabled](docs/SpamFilterIsDisabled.md)
  - [SpamFilterIsEnabled](docs/SpamFilterIsEnabled.md)
@@ -859,6 +896,7 @@ Class | Method | HTTP request | Description
  - [UpdateKeyRequest](docs/UpdateKeyRequest.md)
  - [UpdateMailQuotaRequest](docs/UpdateMailQuotaRequest.md)
  - [UpdateMailbox](docs/UpdateMailbox.md)
+ - [UpdateNetworkDrive](docs/UpdateNetworkDrive.md)
  - [UpdateNotificationSettingsRequest](docs/UpdateNotificationSettingsRequest.md)
  - [UpdateNotificationSettingsRequestSettingsInner](docs/UpdateNotificationSettingsRequestSettingsInner.md)
  - [UpdateNotificationSettingsRequestSettingsInnerChannels](docs/UpdateNotificationSettingsRequestSettingsInnerChannels.md)
