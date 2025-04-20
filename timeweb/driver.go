@@ -471,13 +471,14 @@ func (d *Driver) Create() error {
 		for _, network := range NewServer.Server.GetNetworks() {
 			if network.Type == "local" {
 				d.PrivateIp = network.Ips[0].Ip
+				// TODO check that we need it that ?
 				// set snat for servers without public IP
-				ApiUpdateServerNATRequest := c.ServersAPI.UpdateServerNAT(ctx, d.ServerID)
-				ApiUpdateServerNATRequest = ApiUpdateServerNATRequest.UpdateServerNATRequest(openapi.UpdateServerNATRequest{NatMode: "snat"})
-				_, err = ApiUpdateServerNATRequest.Execute()
-				if err != nil {
-					return err
-				}
+				//ApiUpdateServerNATRequest := c.ServersAPI.UpdateServerNAT(ctx, d.ServerID)
+				//ApiUpdateServerNATRequest = ApiUpdateServerNATRequest.UpdateServerNATRequest(openapi.UpdateServerNATRequest{NatMode: "snat"})
+				//_, err = ApiUpdateServerNATRequest.Execute()
+				//if err != nil {
+				//	return err
+				//}
 				break
 			}
 		}
@@ -492,6 +493,7 @@ func (d *Driver) Create() error {
 		FloatingIp := ip.GetServerIp()
 		serverIp := FloatingIp.GetIp()
 		// get uuid of IP
+		// TODO check public IP binding
 		log.Info("Get uuid of IP")
 		floatingIps, _, err := c.FloatingIPAPI.GetFloatingIps(ctx).Execute()
 		if err != nil {
