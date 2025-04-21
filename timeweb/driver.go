@@ -484,7 +484,7 @@ func (d *Driver) Create() error {
 		}
 		for _, floatingIp := range floatingIps.Ips {
 			// ip is used
-			if floatingIp.ResourceType.Get() != nil && floatingIp.ResourceId.Get() != nil {
+			if floatingIp.ResourceType.Get() != nil && floatingIp.GetResourceId() != nil {
 				continue
 			}
 			BindFloatingIp := openapi.BindFloatingIp{"server", NewServer.Server.GetId()}

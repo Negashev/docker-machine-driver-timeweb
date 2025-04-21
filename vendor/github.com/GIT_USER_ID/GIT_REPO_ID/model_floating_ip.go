@@ -4,6 +4,8 @@ package openapi
 
 import (
 	"encoding/json"
+	"strconv"
+	"fmt"
 )
 
 // checks if the FloatingIp type satisfies the MappedNullable interface at compile time
@@ -21,7 +23,7 @@ type FloatingIp struct {
 	// Тип ресурса.
 	ResourceType NullableString `json:"resource_type"`
 	// Id ресурса.
-	ResourceId NullableString `json:"resource_id"`
+	ResourceId interface{} `json:"resource_id"`
 	// Комментарий
 	Comment NullableString `json:"comment"`
 	// Запись имени узла.
@@ -32,7 +34,7 @@ type FloatingIp struct {
 // This constructor will assign default values to properties that have it defined,
 // and makes sure properties required by API are set, but the set of arguments
 // will change when the set of required properties is changed
-func NewFloatingIp(id string, ip NullableString, isDdosGuard bool, availabilityZone AvailabilityZone, resourceType NullableString, resourceId NullableString, comment NullableString, ptr NullableString) *FloatingIp {
+func NewFloatingIp(id string, ip NullableString, isDdosGuard bool, availabilityZone AvailabilityZone, resourceType NullableString, resourceId interface{}, comment NullableString, ptr NullableString) *FloatingIp {
 	this := FloatingIp{}
 	this.Id = id
 	this.Ip = ip
@@ -179,28 +181,29 @@ func (o *FloatingIp) SetResourceType(v string) {
 
 // GetResourceId returns the ResourceId field value
 // If the value is explicit nil, the zero value for string will be returned
-func (o *FloatingIp) GetResourceId() string {
-	if o == nil || o.ResourceId.Get() == nil {
-		var ret string
+func (o *FloatingIp) GetResourceId() interface{} {
+	if o == nil {
+		var ret interface{}
 		return ret
 	}
 
-	return *o.ResourceId.Get()
+	return o.ResourceId
 }
+
 
 // GetResourceIdOk returns a tuple with the ResourceId field value
 // and a boolean to check if the value has been set.
 // NOTE: If the value is an explicit nil, `nil, true` will be returned
-func (o *FloatingIp) GetResourceIdOk() (*string, bool) {
+func (o *FloatingIp) GetResourceIdOk() (*interface{}, bool) {
 	if o == nil {
 		return nil, false
 	}
-	return o.ResourceId.Get(), o.ResourceId.IsSet()
+	return &o.ResourceId, true
 }
 
 // SetResourceId sets field value
-func (o *FloatingIp) SetResourceId(v string) {
-	o.ResourceId.Set(&v)
+func (o *FloatingIp) SetResourceId(v interface{}) {
+	o.ResourceId = v
 }
 
 // GetComment returns the Comment field value
@@ -222,6 +225,25 @@ func (o *FloatingIp) GetCommentOk() (*string, bool) {
 		return nil, false
 	}
 	return o.Comment.Get(), o.Comment.IsSet()
+}
+
+// GetResourceIdAsString returns the ResourceId field value as a string
+func (o *FloatingIp) GetResourceIdAsString() (string, error) {
+	if o == nil {
+		var ret string
+		return ret, nil
+	}
+
+	switch v := o.ResourceId.(type) {
+	case string:
+		return v, nil
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64), nil
+	case int:
+		return strconv.Itoa(v), nil
+	default:
+		return "", fmt.Errorf("unexpected type for ResourceId: %T", v)
+	}
 }
 
 // SetComment sets field value
@@ -270,7 +292,7 @@ func (o FloatingIp) ToMap() (map[string]interface{}, error) {
 	toSerialize["is_ddos_guard"] = o.IsDdosGuard
 	toSerialize["availability_zone"] = o.AvailabilityZone
 	toSerialize["resource_type"] = o.ResourceType.Get()
-	toSerialize["resource_id"] = o.ResourceId.Get()
+	toSerialize["resource_id"] = o.ResourceId
 	toSerialize["comment"] = o.Comment.Get()
 	toSerialize["ptr"] = o.Ptr.Get()
 	return toSerialize, nil
